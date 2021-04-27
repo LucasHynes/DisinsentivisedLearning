@@ -1,5 +1,6 @@
+from random import random
 from typing import NoReturn
-import neuron
+import neuron as ne
 import pathTracker
 import knowledgeBase
 
@@ -10,7 +11,7 @@ import knowledgeBase
 NEURON_COUNT = 20
 BASE_NEURON_STRENGTH = 0.05
 
-n_list = [neuron.neuron for i in range(NEURON_COUNT)]
+n_list = [ne.neuron(i) for i in range(NEURON_COUNT)]
 
 #used to input the material to test the learning functions
 def input_data_function():
@@ -23,29 +24,32 @@ def learning_tools():
 #enviorment to allow for the interaction of data and computer
 def testing_enviorment():
     
-    data_in = input_data_function()
+    input = input_data_function()
     expected = "AFHC"
 
     #initialize the neurons with base strength None data
-    for n in n_list:
-        for n1 in n.connections:
-            n[n1] = BASE_NEURON_STRENGTH
+    brain_strength_lookup = [[BASE_NEURON_STRENGTH for i in range(len(NEURON_COUNT))] for j in range(len(NEURON_COUNT))]
 
     #represents head neuron w/ empty connections
-    path = [n_list[0]]
+    path = [n_list[random.randint(0, len(n_list))]]
 
     previous_score = 1.01 #default set to 101% off
     ans = "AAAA"
-    temp_ans = ans
-    temp_path = path
-    active_n_i = 0
-    #test to make sure input != output
+
     while previous_score > 0:
-        temp_path, active_n_i = get_next_tool(path[active_n_i])
-        temp_ans = test_answer(temp_path, temp_ans)
-        if previous_score > percent_off(temp_ans, expected):
-            ans = temp_ans
-            previous_score = percent_off(temp_ans, expected)
+
+        temp_path = path
+        temp_path.append(get_next_tool(path[-1], brain_strength_lookup))
+
+        pct_temp = percent_off(test_answer(temp_path, input), expected)
+        pct =  percent_off(test_answer(path, input), expected)
+
+        if pct_temp < pct:
+            previous_score = pct
+            path = temp_path
+            incentivise(path[-2], path[-1], brain_strength_lookup)
+        else:
+            disincentivise(temp_path[-1], path[-1], brain_strength_lookup)
 
     return "Solved"
 
@@ -59,13 +63,15 @@ def memory():
 def neuron_memory():
     return None
 
-def disincentivise(n1, n2):
-    n1[n2] *= 0.8
-    n2[n1] *= 0.8
+def disincentivise(n1, n2, brainpath):
+    brainpath[n1.function_access_num][n2.function_access_num] *= 0.8
+    brainpath[n2.function_access_num][n1.function_access_num] *= 0.8
+    return brainpath
 
-def incentivise(n1, n2):
-    n1[n2] *= 1.2
-    n2[n1] *= 1.2
+def incentivise(n1, n2, brainpath):
+    brainpath[n1.function_access_num][n2.function_access_num] *= 1.2
+    brainpath[n2.function_access_num][n1.function_access_num] *= 1.2
+    return brainpath
 
 def switcher(arg, in):
     switch = {
@@ -97,8 +103,18 @@ def percent_off(attempt, expected):
 
     return num_char_off
 
-def get_next_tool(neuron):
-    return neuron.find_likely()
+def get_next_tool(active_neuron, brain_strength_lookup):
+    total_n_c_strength = 0
+    for neuron in n_list:
+        total_n_c_strength += brain_strength_lookup[active_neuron.function_access_num][neuron.function_access_num]
+        
+    finder = random()*total_n_c_strength
+    temp = 0
+    for neuron in n_list:
+        if temp < finder:
+            temp += brain_strength_lookup[active_neuron.function_access_num][neuron.function_access_num]
+        else:
+            return neuron
 
 def track(path, n_next):
     if path.length > 0:
