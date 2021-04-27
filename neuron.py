@@ -12,9 +12,10 @@ class n:
 
         counter = 0.0
         rand = random() * sum_strength
-
+        i = 0
         for k,v in self.connections:
+            i += 1
             if(counter + v) < rand:
                 counter += v
             else:
-                return k      
+                return k,i      

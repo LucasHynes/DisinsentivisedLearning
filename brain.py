@@ -25,16 +25,29 @@ def testing_enviorment():
     
     data_in = input_data_function()
     expected = "AFHC"
-    tools = learning_tools()
 
     #initialize the neurons with base strength None data
     for n in n_list:
         for n1 in n.connections:
             n[n1] = BASE_NEURON_STRENGTH
 
-    test_answer([], data_in, expected)
+    #represents head neuron w/ empty connections
+    path = [n_list[0]]
 
-    return None
+    previous_score = 1.01 #default set to 101% off
+    ans = "AAAA"
+    temp_ans = ans
+    temp_path = path
+    active_n_i = 0
+    #test to make sure input != output
+    while previous_score > 0:
+        temp_path, active_n_i = get_next_tool(path[active_n_i])
+        temp_ans = test_answer(temp_path, temp_ans)
+        if previous_score > percent_off(temp_ans, expected):
+            ans = temp_ans
+            previous_score = percent_off(temp_ans, expected)
+
+    return "Solved"
 
 #control for how the computer "reacts" to the data to turn it into better mapped brain
 def learn_control():
@@ -61,13 +74,18 @@ def switcher(arg, in):
     }
     return switch.get(arg, "tool not found")
 
-def test_answer(path, input, expectedOutput):
+def test_answer(path, input):
+
+    #goes for initial check
+    if path[0].connections.isEmpty():
+        return input
+
     #go through logic to confirm the result of the current path
     for n in path:
         if n.function_access_num  > 0:
             input = switcher(n.function_access_num, input)
     
-    return (input != expectedOutput)
+    return input
 
 def percent_off(attempt, expected):
     num_char_off = 0
@@ -75,6 +93,33 @@ def percent_off(attempt, expected):
     if len(attempt) == len(expected):
         for i in range(len(attempt)):
             if attempt[i] != expected[i]:
-                num_char_off *= (abs(ord(attempt[i]) - ord(expected[i])))/26
+                num_char_off += ((abs(ord(attempt[i]) - ord(expected[i])))/13)*0.25 #25% of the percent off of the letter
 
     return num_char_off
+
+def get_next_tool(neuron):
+    return neuron.find_likely()
+
+def track(path, n_next):
+    if path.length > 0:
+        if find_connection(path[-1], n_next):
+            #if connection is found the matched strength and is added to the path
+            path.append([n_next, path[-1][n_next]])
+
+def find_connection(n1, n2):
+    data = None
+    
+    if n1.connections.has_key(n2):
+        #gets strength of connection
+        data = n1[n2]
+    else:
+        return False
+    if n2.connections.has_key(n1):
+        #checks the strength for data integrity
+        if data!= n2:
+            print("No matched data found")
+            return None
+        
+        return True
+    else:    
+        return False
