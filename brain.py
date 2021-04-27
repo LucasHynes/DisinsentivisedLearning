@@ -1,7 +1,6 @@
 from random import random
 from typing import NoReturn
 import neuron as ne
-import pathTracker
 import knowledgeBase
 
 # The point to test will be a code given to the computer as four characters before and after some number of opperations
