@@ -1,5 +1,5 @@
-from random import random
-from typing import NoReturn
+import random
+import string
 import neuron as ne
 import knowledgeBase
 
@@ -7,14 +7,18 @@ import knowledgeBase
 # of the given tools to find a computer generated algorithm to build itself an algo for the answer. 
 
 
-NEURON_COUNT = 20
+NEURON_COUNT = 5
 BASE_NEURON_STRENGTH = 0.05
 
 n_list = [ne.neuron(i) for i in range(NEURON_COUNT)]
 
+def id_generator(size=4, chars=string.ascii_uppercase):
+    return ''.join(random.choice(chars) for _ in range(size))
+
+
 #used to input the material to test the learning functions
 def input_data_function():
-    return None
+    return id_generator()
 
 #the base functions availiable to the robot to solve the problem
 def learning_tools():
@@ -27,13 +31,12 @@ def testing_enviorment():
     expected = "AFHC"
 
     #initialize the neurons with base strength None data
-    brain_strength_lookup = [[BASE_NEURON_STRENGTH for i in range(len(NEURON_COUNT))] for j in range(len(NEURON_COUNT))]
+    brain_strength_lookup = [[BASE_NEURON_STRENGTH for i in range(NEURON_COUNT)] for j in range(NEURON_COUNT)]
 
     #represents head neuron w/ empty connections
     path = [n_list[random.randint(0, len(n_list))]]
 
     previous_score = 1.01 #default set to 101% off
-    ans = "AAAA"
 
     while previous_score > 0:
 
@@ -72,25 +75,23 @@ def incentivise(n1, n2, brainpath):
     brainpath[n2.function_access_num][n1.function_access_num] *= 1.2
     return brainpath
 
-def switcher(arg, in):
+def switcher(arg, input):
     switch = {
-        1:knowledgeBase.tool_1(in),
-        2:knowledgeBase.tool_2(in)
+        1:knowledgeBase.tool_1(input),
+        2:knowledgeBase.tool_2(input)
     }
     return switch.get(arg, "tool not found")
 
 def test_answer(path, input):
 
-    #goes for initial check
-    if path[0].connections.isEmpty():
-        return input
-
     #go through logic to confirm the result of the current path
     for n in path:
         if n.function_access_num  > 0:
             input = switcher(n.function_access_num, input)
-    
-    return input
+    if input != None:
+        return input
+    else:
+        return "None input"
 
 def percent_off(attempt, expected):
     num_char_off = 0
@@ -107,7 +108,7 @@ def get_next_tool(active_neuron, brain_strength_lookup):
     for neuron in n_list:
         total_n_c_strength += brain_strength_lookup[active_neuron.function_access_num][neuron.function_access_num]
         
-    finder = random()*total_n_c_strength
+    finder = random.random()*total_n_c_strength
     temp = 0
     for neuron in n_list:
         if temp < finder:
