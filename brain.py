@@ -3,6 +3,7 @@ import string
 import neuron as ne
 import knowledgeBase
 import neural_map
+import copy
 
 # The point to test will be a code given to the computer as four characters before and after some number of opperations
 # of the given tools to find a computer generated algorithm to build itself an algo for the answer. 
@@ -10,8 +11,9 @@ import neural_map
 
 NEURON_COUNT = 5
 BASE_NEURON_STRENGTH = 5
+NUM_RUN = 10000
 
-n_list = [ne.neuron(i) for i in range(NEURON_COUNT)]
+n_list = [ne.neuron(i) for i in range(NEURON_COUNT+1)]
 
 def id_generator(size=4, chars=string.ascii_uppercase):
     return [random.choice(chars) for _ in range(size)]
@@ -41,7 +43,44 @@ def learning_tools():
 
 #enviorment to allow for the interaction of data and computer
 def testing_enviorment():
+    input = input_data_function()
+    expected = ['A', 'F', 'M', 'C']
 
+    #initialize the neurons with base strength None data
+    brain_strength_lookup = neural_map.datafile
+
+    brain_strength_lookup = [[float(i) for i in d] for d in brain_strength_lookup]
+
+    new_b = []
+    for b in brain_strength_lookup:
+        if b != []:
+            new_b.append(b)
+
+    brain_strength_lookup = new_b
+    #represents head neuron w/ empty connections
+    path = [n_list[0]]
+    previous_score = 1.01 #default set to 101% off
+    run_no = 100
+    run_count = 0
+    while (previous_score > 0) and (run_count < run_no):
+        temp_path = copy.copy(path)
+        temp_path.append(get_next_tool(path[-1], brain_strength_lookup))
+
+        pct_temp = percent_off(test_answer(temp_path, input), expected)
+        pct =  percent_off(test_answer(path, input), expected)
+
+        if pct_temp < pct:
+            previous_score = pct_temp
+            path = temp_path
+            incentivise(path[-2], path[-1], brain_strength_lookup)      
+        else:
+            disincentivise(temp_path[-1], path[-1], brain_strength_lookup)
+            
+        run_count +=1
+
+    print(percent_off(test_answer(path, input), expected))
+    print(brain_strength_lookup)
+    neural_map.write_to_csv(brain_strength_lookup)
     return "Solved"
 
 #control for how the computer "reacts" to the data to turn it into better mapped brain
@@ -55,13 +94,13 @@ def neuron_memory():
     return None
 
 def disincentivise(n1, n2, brainpath):
-    brainpath[n1.function_access_num][n2.function_access_num] *= 0.8
-    brainpath[n2.function_access_num][n1.function_access_num] *= 0.8
+    brainpath[n1.function_access_num][n2.function_access_num] *= 0.98
+    brainpath[n2.function_access_num][n1.function_access_num] *= 0.98
     return brainpath
 
 def incentivise(n1, n2, brainpath):
-    brainpath[n1.function_access_num][n2.function_access_num] *= 1.2
-    brainpath[n2.function_access_num][n1.function_access_num] *= 1.2
+    brainpath[n1.function_access_num][n2.function_access_num] *= 1.02
+    brainpath[n2.function_access_num][n1.function_access_num] *= 1.02
     return brainpath
 
 def switcher(arg, input):
@@ -79,7 +118,8 @@ def test_answer(path, input):
     #go through logic to confirm the result of the current path
     for n in path:
         if n.function_access_num  > 0:
-            input = switcher(n.function_access_num, input)
+            new_input = switcher(n.function_access_num, input)
+            input = new_input
     if input != None:
         return input
     else:
@@ -87,7 +127,6 @@ def test_answer(path, input):
 
 def percent_off(attempt, expected):
     num_char_off = 0.000
-    print(attempt, expected)
     if len(attempt) == len(expected):
         for i in range(len(attempt)):
             if attempt[i] != expected[i]:
@@ -136,35 +175,5 @@ def find_connection(n1, n2):
     else:    
         return False
 
-input = input_data_function()
-expected = ['A', 'F', 'M', 'C']
-
-#initialize the neurons with base strength None data
-brain_strength_lookup = [[BASE_NEURON_STRENGTH for i in range(NEURON_COUNT)] for j in range(NEURON_COUNT)]
-
-#represents head neuron w/ empty connections
-path = [n_list[0]]
-previous_score = 1.01 #default set to 101% off
-run_no = 100
-run_count = 0
-while (previous_score > 0) and (run_count < run_no):
-    temp_path = path
-    temp_path.append(get_next_tool(path[-1], brain_strength_lookup))
-    pct_temp = percent_off(test_answer(temp_path, input), expected)
-    pct =  percent_off(test_answer(path, input), expected)
-    print(pct_temp)
-    print(pct)
-    if pct_temp < pct:
-        previous_score = pct_temp
-        path = temp_path
-        print(path[-2].function_access_num)
-        print(path[-1].function_access_num)
-        incentivise(path[-2], path[-1], brain_strength_lookup)      
-    else:
-        disincentivise(temp_path[-1], path[-1], brain_strength_lookup)
-        
-    print(percent_off(test_answer(path, input), expected))
-    run_count +=1
-
-print(brain_strength_lookup)
-neural_map.write_to_csv(brain_strength_lookup)
+for i in range(NUM_RUN):
+    testing_enviorment()
