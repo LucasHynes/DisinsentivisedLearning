@@ -150,7 +150,7 @@ run_count = 0
 while (previous_score > 0) and (run_count < run_no):
     temp_path = path
     temp_path.append(get_next_tool(path[-1], brain_strength_lookup))
-    pct_temp = percent_off(test_answer(tevmp_path, input), expected)
+    pct_temp = percent_off(test_answer(temp_path, input), expected)
     pct =  percent_off(test_answer(path, input), expected)
     print(pct_temp)
     print(pct)

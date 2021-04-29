@@ -1,5 +1,4 @@
 def tool_1(input):
-    print(input)
     #assuming input is 4 char list i.e. ['A','B','C','D']
     return [input[3], input[1], input[2], input[0]]
 
