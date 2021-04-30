@@ -8,15 +8,12 @@ import copy
 # The point to test will be a code given to the computer as four characters before and after some number of opperations
 # of the given tools to find a computer generated algorithm to build itself an algo for the answer. 
 
-
 NEURON_COUNT = 5
 BASE_NEURON_STRENGTH = 5
-NUM_RUN = 100
-RUN_NO = 75
-RUN_COUNT = 0
-TENTICLE_COUNT = 4
-SEARCHING_LENGTH = 3
-n_list = [ne.neuron(i) for i in range(NEURON_COUNT+1)]
+NUM_RUN = 10
+RUN_NO = 200
+TENTICLE_COUNT = 40
+SEARCHING_LENGTH = 20
 
 def id_generator(size=4, chars=string.ascii_uppercase):
     return [random.choice(chars) for _ in range(size)]
@@ -45,37 +42,39 @@ def learning_tools():
     return None
 
 #enviorment to allow for the interaction of data and computer
-def testing_enviorment():
+def testing_enviorment(brain_strength_lookup):
     input = input_data_function()
     expected = ['A', 'F', 'M', 'C']
     global RUN_COUNT
     #initialize the neurons with base strength None data
-    brain_strength_lookup = neural_map.datafile
+    
 
+    #clean up the network
     brain_strength_lookup = [[float(i) for i in d] for d in brain_strength_lookup]
-
     new_b = []
     for b in brain_strength_lookup:
         if b != []:
             new_b.append(b)
-
     brain_strength_lookup = new_b
+
+
     #represents head neuron w/ empty connections
     path = [n_list[0]]
     previous_score = 1.01 #default set to 101% off
+    run_count = 0
     
-    
-    while (previous_score > 0) and (RUN_COUNT < RUN_NO):
+    while (previous_score > 0) and (run_count < RUN_NO):
 
-        tenticles = [copy.copy(path) for _ in range(TENTICLE_COUNT)]
+        tenticles = [copy.deepcopy(path) for _ in range(TENTICLE_COUNT)]
         temp_score = [0 for _ in range(TENTICLE_COUNT)]
         count = 0
-        for attempt in tenticles:
 
-            
+        for attempt in tenticles:
+  
             for i in range(SEARCHING_LENGTH):
-                temp_path = copy.copy(attempt)
-                temp_path.append(get_next_tool(path[-1], brain_strength_lookup))
+                
+                temp_path = copy.deepcopy(attempt)
+                temp_path.append(get_next_tool(attempt[-1], brain_strength_lookup))
 
                 pct_temp = percent_off(test_answer(temp_path, input), expected)
                 pct =  percent_off(test_answer(attempt, input), expected)
@@ -83,41 +82,35 @@ def testing_enviorment():
                 if pct_temp < pct:
                     previous_score = pct_temp
                     attempt = temp_path
-                    incentivise(attempt[-2], attempt[-1], brain_strength_lookup)      
+                    brain_strength_lookup = incentivise(attempt[-2], attempt[-1], brain_strength_lookup)      
                 else:
-                    disincentivise(temp_path[-1], attempt[-1], brain_strength_lookup)
+                    brain_strength_lookup = disincentivise(temp_path[-1], attempt[-1], brain_strength_lookup)
                     
-                RUN_COUNT +=1
+                run_count +=1
             
             temp_score[count] = (previous_score)
+            tenticles[count] = attempt
             count += 1
-            
-        path = tenticles[temp_score.index(max(temp_score))]
+    
+    path = copy.deepcopy(tenticles[temp_score.index(max(temp_score))])
 
 
-    print(percent_off(test_answer(path, input), expected))
-    print(brain_strength_lookup)
-    neural_map.write_to_csv(brain_strength_lookup)
-    return "Solved"
+    return path, input, expected, brain_strength_lookup
 
 #control for how the computer "reacts" to the data to turn it into better mapped brain
 def learn_control():
     return None
 
-def memory():
-    return None
-
-def neuron_memory():
-    return None
-
+#lowers the connection between the sender to reciever in the specified directionality
+#of the two nodes passed through
 def disincentivise(n1, n2, brainpath):
-    brainpath[n1.function_access_num][n2.function_access_num] *= 0.98
-    brainpath[n2.function_access_num][n1.function_access_num] *= 0.98
+    brainpath[n1.function_access_num][n2.function_access_num] *= 0.95
     return brainpath
 
+#highten the connection between the sender to reciever in the specified directionality
+#of the two nodes passed through
 def incentivise(n1, n2, brainpath):
-    brainpath[n1.function_access_num][n2.function_access_num] *= 1.02
-    brainpath[n2.function_access_num][n1.function_access_num] *= 1.02
+    brainpath[n1.function_access_num][n2.function_access_num] *= 1.0
     return brainpath
 
 def switcher(arg, input, path):
@@ -196,5 +189,26 @@ def find_connection(n1, n2):
     else:    
         return False
 
-for i in range(NUM_RUN):
-    testing_enviorment()
+#holds the list of neurons with functions applied by the number
+n_list = [ne.neuron(i) for i in range(NEURON_COUNT+1)]
+list_of_runs = [[] for _ in range(NUM_RUN)]
+
+for i in list_of_runs:
+
+    brain = copy.deepcopy(neural_map.datafile)
+
+    path, input, expected, new_brain = copy.deepcopy(testing_enviorment(brain))
+
+    score = copy.deepcopy(percent_off(test_answer(path, input), expected))
+    i += copy.deepcopy([path, input, score])
+    print(i)
+    neural_map.write_to_csv(new_brain)
+   
+best_result = 1
+best_index = -1
+for run in list_of_runs:
+    if run[2] < best_result:
+        best_result = run[2]
+        best_index = list_of_runs.index(run)
+
+print(list_of_runs[best_index])
