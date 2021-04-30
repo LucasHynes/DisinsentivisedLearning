@@ -10,10 +10,10 @@ import copy
 
 NEURON_COUNT = 5
 BASE_NEURON_STRENGTH = 5
-NUM_RUN = 10
+NUM_RUN = 100
 RUN_NO = 200
-TENTICLE_COUNT = 40
-SEARCHING_LENGTH = 20
+TENTICLE_COUNT = 400
+SEARCHING_LENGTH = 25
 
 def id_generator(size=4, chars=string.ascii_uppercase):
     return [random.choice(chars) for _ in range(size)]
@@ -199,8 +199,8 @@ for i in list_of_runs:
 
     path, input, expected, new_brain = copy.deepcopy(testing_enviorment(brain))
 
-    score = copy.deepcopy(percent_off(test_answer(path, input), expected))
-    i += copy.deepcopy([path, input, score])
+    score = percent_off(test_answer(path, input), expected)
+    i += [path, input, score]
     print(i)
     neural_map.write_to_csv(new_brain)
    
