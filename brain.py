@@ -11,8 +11,11 @@ import copy
 
 NEURON_COUNT = 5
 BASE_NEURON_STRENGTH = 5
-NUM_RUN = 10000
-
+NUM_RUN = 100
+RUN_NO = 75
+RUN_COUNT = 0
+TENTICLE_COUNT = 4
+SEARCHING_LENGTH = 3
 n_list = [ne.neuron(i) for i in range(NEURON_COUNT+1)]
 
 def id_generator(size=4, chars=string.ascii_uppercase):
@@ -45,7 +48,7 @@ def learning_tools():
 def testing_enviorment():
     input = input_data_function()
     expected = ['A', 'F', 'M', 'C']
-
+    global RUN_COUNT
     #initialize the neurons with base strength None data
     brain_strength_lookup = neural_map.datafile
 
@@ -60,23 +63,37 @@ def testing_enviorment():
     #represents head neuron w/ empty connections
     path = [n_list[0]]
     previous_score = 1.01 #default set to 101% off
-    run_no = 100
-    run_count = 0
-    while (previous_score > 0) and (run_count < run_no):
-        temp_path = copy.copy(path)
-        temp_path.append(get_next_tool(path[-1], brain_strength_lookup))
+    
+    
+    while (previous_score > 0) and (RUN_COUNT < RUN_NO):
 
-        pct_temp = percent_off(test_answer(temp_path, input), expected)
-        pct =  percent_off(test_answer(path, input), expected)
+        tenticles = [copy.copy(path) for _ in range(TENTICLE_COUNT)]
+        temp_score = [0 for _ in range(TENTICLE_COUNT)]
+        count = 0
+        for attempt in tenticles:
 
-        if pct_temp < pct:
-            previous_score = pct_temp
-            path = temp_path
-            incentivise(path[-2], path[-1], brain_strength_lookup)      
-        else:
-            disincentivise(temp_path[-1], path[-1], brain_strength_lookup)
             
-        run_count +=1
+            for i in range(SEARCHING_LENGTH):
+                temp_path = copy.copy(attempt)
+                temp_path.append(get_next_tool(path[-1], brain_strength_lookup))
+
+                pct_temp = percent_off(test_answer(temp_path, input), expected)
+                pct =  percent_off(test_answer(attempt, input), expected)
+
+                if pct_temp < pct:
+                    previous_score = pct_temp
+                    attempt = temp_path
+                    incentivise(attempt[-2], attempt[-1], brain_strength_lookup)      
+                else:
+                    disincentivise(temp_path[-1], attempt[-1], brain_strength_lookup)
+                    
+                RUN_COUNT +=1
+            
+            temp_score[count] = (previous_score)
+            count += 1
+            
+        path = tenticles[temp_score.index(max(temp_score))]
+
 
     print(percent_off(test_answer(path, input), expected))
     print(brain_strength_lookup)
@@ -103,13 +120,14 @@ def incentivise(n1, n2, brainpath):
     brainpath[n2.function_access_num][n1.function_access_num] *= 1.02
     return brainpath
 
-def switcher(arg, input):
+def switcher(arg, input, path):
     switch = {
         1:knowledgeBase.tool_1(input),
         2:knowledgeBase.tool_2(input),
         3:knowledgeBase.tool_3(input),
         4:knowledgeBase.tool_4(input),
-        5:knowledgeBase.tool_5(input)
+        5:knowledgeBase.tool_5(input),
+        6:knowledgeBase.tool_6(path)
     }
     return switch.get(arg, "tool not found")
 
@@ -117,9 +135,12 @@ def test_answer(path, input):
 
     #go through logic to confirm the result of the current path
     for n in path:
-        if n.function_access_num  > 0:
-            new_input = switcher(n.function_access_num, input)
+        if (n.function_access_num  > 0) and (n.function_access_num != 6):
+            new_input = switcher(n.function_access_num, input, path)
             input = new_input
+        elif(n.function_access_num == 6):
+            new_path = switcher(n.function_access_num, input, path)
+            path = new_path
     if input != None:
         return input
     else:

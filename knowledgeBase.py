@@ -19,3 +19,6 @@ def tool_4(input):
 
 def tool_5(input):
     return [input[3], input[0], input[1], input[2]]
+    
+def tool_6(path):
+    return path[:(int(len(path)/2)-1)] + path[(int(len(path)/2) + 3):-1]
