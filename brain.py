@@ -10,7 +10,7 @@ import copy
 
 NEURON_COUNT = 5
 BASE_NEURON_STRENGTH = 5
-NUM_RUN = 100
+NUM_RUN = 10
 RUN_NO = 200
 TENTICLE_COUNT = 400
 SEARCHING_LENGTH = 25
@@ -45,7 +45,6 @@ def learning_tools():
 def testing_enviorment(brain_strength_lookup):
     input = input_data_function()
     expected = ['A', 'F', 'M', 'C']
-    global RUN_COUNT
     #initialize the neurons with base strength None data
     
 
@@ -65,7 +64,7 @@ def testing_enviorment(brain_strength_lookup):
     
     while (previous_score > 0) and (run_count < RUN_NO):
 
-        tenticles = [copy.deepcopy(path) for _ in range(TENTICLE_COUNT)]
+        tenticles = [path for _ in range(TENTICLE_COUNT)]
         temp_score = [0 for _ in range(TENTICLE_COUNT)]
         count = 0
 
@@ -92,10 +91,10 @@ def testing_enviorment(brain_strength_lookup):
             tenticles[count] = attempt
             count += 1
     
-    path = copy.deepcopy(tenticles[temp_score.index(max(temp_score))])
+    path = tenticles[temp_score.index(max(temp_score))]
 
 
-    return path, input, expected, brain_strength_lookup
+    return path, input, expected, brain_strength_lookup, test_answer(path, input), percent_off(test_answer(path, input), expected)
 
 #control for how the computer "reacts" to the data to turn it into better mapped brain
 def learn_control():
@@ -197,18 +196,16 @@ for i in list_of_runs:
 
     brain = copy.deepcopy(neural_map.datafile)
 
-    path, input, expected, new_brain = copy.deepcopy(testing_enviorment(brain))
-
-    score = percent_off(test_answer(path, input), expected)
-    i += [path, input, score]
+    path, input, expected, new_brain, result, score = copy.deepcopy(testing_enviorment(brain))
+    i += [path, input, result, score]
     print(i)
     neural_map.write_to_csv(new_brain)
    
 best_result = 1
 best_index = -1
 for run in list_of_runs:
-    if run[2] < best_result:
-        best_result = run[2]
+    if run[3] < best_result:
+        best_result = run[3]
         best_index = list_of_runs.index(run)
 
 print(list_of_runs[best_index])
