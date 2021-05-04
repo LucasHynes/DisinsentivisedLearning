@@ -1,8 +1,8 @@
 import random
 import string
-import neuron as ne
-import knowledgeBase
-import neural_map
+import v1.neuron as ne
+import v1.knowledgeBase as knowledgeBase
+import v1.neural_map as neural_map
 import copy
 
 # The point to test will be a code given to the computer as four characters before and after some number of opperations
