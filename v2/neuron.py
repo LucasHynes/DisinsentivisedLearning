@@ -1,7 +1,9 @@
 class n:
 
     def __init__(self):
-        parent = None
-        grandParent = None
-        child1 = None
-        child2 = None
+        self.parent = None
+        self.grandParent = None
+        self.child1 = None
+        self.child2 = None
+
+        self.function_access = 0
