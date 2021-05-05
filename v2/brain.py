@@ -1,23 +1,19 @@
 #uses the neuron classes and how they are able to interact with each other
-import v2.neuron as neuron
+import neuron
 import copy
 
 N_COUNT = 100
 
-network = [copy.copy(neuron.n) for _ in range(N_COUNT)]
+input_n = copy.copy(neuron.n)
+check_n = copy.copy(neuron.n)
+change_n = copy.copy(neuron.n)
+output_n = copy.copy(neuron.n)
 
-def proper_index(n_no, add_val, l):
-    if n_no + add_val > len(l):
-        new_index = (n_no + add_val) - len(l)
-        return l[new_index]
-    else:
-        return l[n_no + add_val]
+input_n.child1 = check_n
+input_n.child2 = change_n
+check_n.child1 = change_n
+check_n.child2 = output_n
+change_n.child1 = output_n
+output_n.child1 = input_n
 
-#connects the nuerons to a mapped algo
-def n_mapping(network):
-    
-    for n_no in range(len(network)):
-        network[n_no].child1 = proper_index(n_no, 1, network)
-        network[n_no].child2 = proper_index(n_no, 2, network)
-
-    return network
+print(input_n.child1.c1_strength)
