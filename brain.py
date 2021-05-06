@@ -1,13 +1,12 @@
 #uses the neuron classes and how they are able to interact with each other
 import neuron
-import copy
 from random import random
 N_COUNT = 100
 
-input_n = neuron.n("input")
-check_n = neuron.n("check")
-change_n = neuron.n("change")
-output_n = neuron.n("output")
+input_n = neuron.input()
+check_n = neuron.check()
+change_n = neuron.change()
+output_n = neuron.output()
 
 input_n.child1 = check_n
 input_n.child2 = change_n
@@ -32,7 +31,7 @@ def thought(i):
     if i.play == False:
         active_n = ck.decision()
         
-        if active_n.type == "change":
+        if active_n.__name__ == neuron.check.__name__:
             active_n = ck.child1
         else:
             active_n = ck.child2

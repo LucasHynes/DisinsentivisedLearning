@@ -29,3 +29,7 @@ class change(n):
     def change_input(self):
         self.output = kb.tool_one(self.data)
 
+class output(n):
+
+    def return_function(self):
+        return self.data
