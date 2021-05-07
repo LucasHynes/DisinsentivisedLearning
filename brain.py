@@ -23,7 +23,7 @@ def thought(i):
     active_n = i
     ck = i.child1
     ch = i.child2
-    o = ck.child2
+    o = ch.child1
     if ((i.type != "input") or (ck.type != "check")) or ((ch.type != "change") or (o.type != "output")):
         print("WARNING: impropper type of neuron passed through the function, returning error!")
         return -1
@@ -33,7 +33,12 @@ def thought(i):
         
         if active_n.__name__ == neuron.check.__name__:
             active_n = ck.child1
+
+            if active_n.__name__ == neuron.change.__name__:
+                new_input = active_n.change_input()
+                o.data = new_input
         else:
             active_n = ck.child2
+        
 
 thought(input_n)

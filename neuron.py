@@ -33,3 +33,6 @@ class output(n):
 
     def return_function(self):
         return self.data
+
+    def return_or_loop(self):
+        return None
